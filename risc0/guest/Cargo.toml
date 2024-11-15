@@ -1,0 +1,8 @@
+[package]
+name = "guest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+risc0-zkvm-guest = "0.10.0"
+risc0-zkvm-guest-env = "0.10.0"
