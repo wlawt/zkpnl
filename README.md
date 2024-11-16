@@ -1,4 +1,4 @@
-### ZKPnL
+# ZKPnL
 
 CapCheck is a Twitter bot designed to combat fraudulent trading rampant profit-and-loss (PnL) claims and promote transparency in the trading community. We’ve come across multiple accounts who on a daily basis that pretend to be profitable traders, posting engaging and often ridiculous images showcasing entry and current prices of memecoins and other assets they “invested” in. These users promote nearly impossible percent returns, and connivingly awe inspiring budding traders or amateur enthusiasts to follow their fraudulent courses, methods and teachings. As a result, we often see genuine people showing off their successes, who get shut down and cancelled online for the disengaging reputation that deceptive “crypto gurus” put upon them. Our bot is the solution.
 
