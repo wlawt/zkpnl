@@ -22,11 +22,11 @@ Real-Time Twitter Interaction:
 Posts response under the original tweet, categorizing the trade as verified, fake, or a mix (partial scam).
 Uses fun, engaging prompts (e.g., "Scam alert!" or "Moonshot confirmed!") to drive engagement and awareness.
 
-### How We Built It
+## How We Built It
 
 CapCheck is an end-to-end solution that leverages blockchain technology, AI-powered image processing, and zero-knowledge proofs (ZKPs) to automate the verification of trading profit-and-loss (PnL) claims shared on social media platforms like Twitter. The project combines multiple technologies to ensure a trustless, scalable, and accurate verification process.
 
-### Core Components
+## Core Components
 
 1. Twitter Bot Integration  
 The bot is built using Python and the Tweepy API to interact with Twitter users. It listens for mentions via the Twitter Streaming API, where users can tag the bot in replies or quote tweets containing PnL images. Upon detecting a valid request, the bot downloads the images and begins the verification process. The bot also dynamically parses references to ensure compatibility with a variety of tweet formats. 
