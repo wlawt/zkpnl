@@ -4,6 +4,8 @@ use methods::{
     PROGRAM_ELF, PROGRAM_ID
 };
 use risc0_zkvm::{default_prover, ExecutorEnv};
+use sha2::{Digest, Sha256};
+use std::env;
 
 fn main() {
     // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
@@ -11,22 +13,13 @@ fn main() {
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
 
-    // An executor environment describes the configurations for the zkVM
-    // including program inputs.
-    // An default ExecutorEnv can be created like so:
-    // `let env = ExecutorEnv::builder().build().unwrap();`
-    // However, this `env` does not have any inputs.
-    //
-    // To add guest input to the executor environment, use
-    // ExecutorEnvBuilder::write().
-    // To access this method, you'll need to use ExecutorEnv::builder(), which
-    // creates an ExecutorEnvBuilder. When you're done adding input, call
-    // ExecutorEnvBuilder::build().
+    let args: Vec<String> = env::args().collect();
+
 
     // For example:
-    let entry: f32 = 100.0;
-    let current: f32 = 120.0;
-    let pnl: f32 = 20.0;
+    let entry: f32 = args[1].parse().expect("Invalid number for entry");
+    let current: f32 = args[2].parse().expect("Invalid number for current");
+    let pnl: f32 = args[3].parse().expect("Invalid number for pnl");
     let inputs = vec![entry, current, pnl];
     
 
@@ -54,6 +47,11 @@ fn main() {
     let output: bool = receipt.journal.decode().unwrap();
 
     println!("output: {}", output);
+
+    let mut hasher = Sha256::new();
+    let data = &receipt.journal.bytes;
+    hasher.update(data);
+    println!("proof hash: {:x}", hasher.finalize());
 
     // The receipt was verified at the end of proving, but the below code is an
     // example of how someone else could verify this receipt.
