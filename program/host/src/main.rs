@@ -51,7 +51,7 @@ fn main() {
     // TODO: Implement code for retrieving receipt journal here.
 
     // For example:
-    let output: u32 = receipt.journal.decode().unwrap();
+    let output: bool = receipt.journal.decode().unwrap();
 
     println!("output: {}", output);
 

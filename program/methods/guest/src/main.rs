@@ -17,5 +17,6 @@ fn main() {
     }
 
     // Commit to journal
-    env::commit(&pnl_calculated);
+    let success = true;
+    env::commit(&success);
 }
