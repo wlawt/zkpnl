@@ -17,10 +17,10 @@ def verify_data(trade_data_array: List[Dict]) -> str:
     for trade_data in trade_data_array:
         try:
             # Extract values from trade data
-            entry = float(trade_data['entry'])
-            exit_price = float(trade_data['exit'])
-            percentage = float(trade_data['percentage'])
-            leverage = int(trade_data['leverage'])
+            entry = trade_data['entry']
+            exit_price = trade_data['exit']
+            percentage = trade_data['percentage']
+            leverage = trade_data['leverage']
             
             # Call ZK proof generation
             proof_hash = call_zk(entry, exit_price, percentage, leverage)

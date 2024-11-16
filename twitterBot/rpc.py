@@ -58,7 +58,7 @@ def run_rust_exe(exe_path, *args):
         return None
 
 def call_zk(entry, current, pnl, lev):
-    exe_path = "twitterBot/host"  # Replace with the path to your Rust executable
+    exe_path = "./host"  # Replace with the path to your Rust executable
     args = [entry, current, pnl, lev]          # Arguments to pass to the Rust executable
 
     output = run_rust_exe(exe_path, *args)
