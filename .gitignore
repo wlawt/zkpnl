@@ -1,2 +1,6 @@
 /contracts/deploy.sh
 /contracts/cache
+
+.DS_Store
+/*/*.DS_Store
+/contracts/out
