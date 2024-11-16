@@ -20,7 +20,8 @@ fn main() {
     let entry: f32 = args[1].parse().expect("Invalid number for entry");
     let current: f32 = args[2].parse().expect("Invalid number for current");
     let pnl: f32 = args[3].parse().expect("Invalid number for pnl");
-    let inputs = vec![entry, current, pnl];
+    let lev: u32 = args[4].parse().expect("Invalid number for lev");
+    let inputs = vec![entry, current, pnl, (lev as f32)];
     
 
     let env = ExecutorEnv::builder()
