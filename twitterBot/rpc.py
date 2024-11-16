@@ -57,9 +57,9 @@ def run_rust_exe(exe_path, *args):
         print(f"Error: {e.stderr.strip()}")
         return None
 
-def call_zk(entry, current, pnl):
+def call_zk(entry, current, pnl, lev):
     exe_path = "../program/target/release/host"  # Replace with the path to your Rust executable
-    args = [entry, current, pnl]          # Arguments to pass to the Rust executable
+    args = [entry, current, pnl, lev]          # Arguments to pass to the Rust executable
 
     output = run_rust_exe(exe_path, *args)
     if "proof hash:" in output:
@@ -70,7 +70,7 @@ def call_zk(entry, current, pnl):
 
 
 if __name__ == "__main__":
-    proof_hash_to_post = call_zk(100.0, 120.0, 20.0)
+    proof_hash_to_post = call_zk(100.0, 120.0, 20.0, 1)
     if proof_hash_to_post:
         print(post_to_sc(proof_hash_to_post))
     else:

@@ -7,9 +7,10 @@ fn main() {
     let entry: f32 = inputs[0];
     let current: f32 = inputs[1];
     let pnl_provided: f32 = inputs[2];
+    let lev: f32 = inputs[3];
 
     //pnl formula
-    let pnl_calculated = ((current - entry) / entry) * 100.0;
+    let pnl_calculated = ((current - entry) / entry) * 100.0 * lev;
 
     // check if pnl matches
     if (pnl_provided - pnl_calculated).abs() > 0.0001 {
