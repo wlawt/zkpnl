@@ -296,7 +296,8 @@ class TwitterBot:
         ]
 
         messages = verified_messages if is_verified else fake_messages
-        self.tweet(random.choice(messages))
+        message = random.choice(messages) + "\n Verify this for yourself on Zircuit!: " #need function to grab zircuit link here and append to end
+        self.tweet(message)
 
     def tweet_with_partial_scam_message(self) -> None:
         """Post a tweet for partial scams."""
