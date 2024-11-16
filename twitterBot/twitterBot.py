@@ -2,26 +2,138 @@ import tweepy
 import requests
 import os
 import random
-import subprocess
+import json
+import time
+from typing import List, Dict, Optional, Tuple
+from openai import OpenAI
+from datetime import datetime, timezone
 from dotenv import load_dotenv
-from datetime import datetime
+import logging
+
+
+class MentionStreamListener(tweepy.StreamingClient):
+    def __init__(self, bearer_token: str, bot_instance):
+        super().__init__(bearer_token)
+        self.bot = bot_instance
+        self.bot_username = os.getenv('BOT_USERNAME', '').lower()
+        
+    def on_tweet(self, tweet):
+        try:
+            # Check if the tweet is a mention of our bot
+            if any(mention['username'].lower() == self.bot_username 
+                   for mention in tweet.data['entities']['mentions']):
+                
+                # Extract the original tweet ID that was quoted or replied to
+                referenced_tweet_id = None
+                if tweet.data.get('referenced_tweets'):
+                    for ref_tweet in tweet.data['referenced_tweets']:
+                        if ref_tweet['type'] in ['quoted', 'replied_to']:
+                            referenced_tweet_id = ref_tweet['id']
+                            break
+                
+                if referenced_tweet_id:
+                    self.bot.process_tweet(referenced_tweet_id, tweet.id)
+                else:
+                    # If no reference tweet, reply saying we need a tweet to analyze
+                    self.bot.tweet_with_help_message(tweet.id)
+                    
+        except Exception as e:
+            logging.error(f"Error in stream listener: {str(e)}")
+            
+    def on_error(self, status):
+        logging.error(f"Stream error: {status}")
+        
+    def on_connection_error(self):
+        logging.error("Stream connection error")
+        return True  # Keep the stream alive
+
 
 class TwitterBot:
-    def __init__(self, api_key: str, api_secret: str, access_token: str, access_token_secret: str):
-        """Initialize Twitter bot with API credentials"""
-        auth = tweepy.OAuthHandler(api_key, api_secret)
-        auth.set_access_token(access_token, access_token_secret)
+    def __init__(self):
+        """Initialize Twitter bot with API credentials from environment"""
+        # Setup logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            filename='twitter_bot.log'
+        )
+        
+        load_dotenv()
+        
+        # Twitter API setup
+        self.api_key = os.getenv('API_KEY')
+        self.api_secret = os.getenv('API_SECRET')
+        self.access_token = os.getenv('ACCESS_TOKEN')
+        self.access_token_secret = os.getenv('ACCESS_TOKEN_SECRET')
+        self.bearer_token = os.getenv('BEARER_TOKEN')
+        self.bot_username = os.getenv('BOT_USERNAME')
+        
+        if not all([self.api_key, self.api_secret, self.access_token, 
+                   self.access_token_secret, self.bearer_token, self.bot_username]):
+            raise ValueError("Missing Twitter API credentials in environment variables")
+            
+        auth = tweepy.OAuthHandler(self.api_key, self.api_secret)
+        auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(auth)
         self.client = tweepy.Client(
-            consumer_key=api_key,
-            consumer_secret=api_secret,
-            access_token=access_token,
-            access_token_secret=access_token_secret
+            bearer_token=self.bearer_token,
+            consumer_key=self.api_key,
+            consumer_secret=self.api_secret,
+            access_token=self.access_token,
+            access_token_secret=self.access_token_secret
         )
+        
+        # Stream listener setup
+        self.stream = MentionStreamListener(self.bearer_token, self)
+        
+        # OpenAI setup
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        if not self.openai_api_key:
+            raise ValueError("Missing OpenAI API key in environment variables")
+        
+        self.openai_client = OpenAI(api_key=self.openai_api_key)
         
         # Create folders for images
         self.pnl_folder = "pnl"
         os.makedirs(self.pnl_folder, exist_ok=True)
+        
+        # Constants
+        self.MAX_RETRIES = 3
+        self.RETRY_DELAY = 2  # seconds
+        
+        logging.info("Bot initialized successfully")
+
+    def start_mention_stream(self):
+        """Start listening for mentions"""
+        try:
+            # Clear existing rules
+            existing_rules = self.stream.get_rules()
+            if existing_rules.data:
+                rule_ids = [rule.id for rule in existing_rules.data]
+                self.stream.delete_rules(rule_ids)
+            
+            # Add rule to track mentions
+            self.stream.add_rules(tweepy.StreamRule(f"@{self.bot_username}"))
+            
+            # Start stream
+            logging.info("Starting mention stream...")
+            self.stream.filter(tweet_fields=['referenced_tweets', 'entities'])
+            
+        except Exception as e:
+            logging.error(f"Error in mention stream: {str(e)}")
+            # Attempt to restart stream after delay
+            time.sleep(60)
+            self.start_mention_stream()
+
+    def tweet_with_help_message(self, reply_to_id: str) -> None:
+        """Send help message when mentioned without a reference tweet"""
+        help_messages = [
+            "🤖 Hey there! To analyze a PnL, mention me in a reply to or quote tweet of the image you want to verify!",
+            "👋 I'm here to help! Just mention me in a reply to the tweet containing the PnL screenshots you want to verify.",
+            "💡 Quick tip: To use me, mention me while replying to or quoting a tweet with PnL screenshots!"
+        ]
+        self.tweet(random.choice(help_messages), reply_to_id)
+
 
     def download_image(self, image_url: str) -> str:
         """
@@ -220,15 +332,20 @@ class TwitterBot:
             print(f"Error posting tweet: {str(e)}")
 
 
-if __name__ == "__main__":
-    load_dotenv()
-    bot = TwitterBot(
-        api_key=os.getenv('API_KEY'),
-        api_secret=os.getenv('API_SECRET'),
-        access_token=os.getenv('ACCESS_TOKEN'),
-        access_token_secret=os.getenv('ACCESS_TOKEN_SECRET')
-    )
+def run_bot():
+    """Main function to run the bot"""
+    while True:
+        try:
+            logging.info("Initializing bot...")
+            bot = TwitterAnalyzerBot()
+            
+            logging.info("Starting mention stream...")
+            bot.start_mention_stream()
+            
+        except Exception as e:
+            logging.error(f"Critical error: {str(e)}")
+            logging.info("Restarting bot in 60 seconds...")
+            time.sleep(60)
 
-    # Example: Process a tweet by ID
-    tweet_id = "YOUR_TWEET_ID_HERE"
-    bot.process_tweet(tweet_id)
+if __name__ == "__main__":
+    run_bot()
