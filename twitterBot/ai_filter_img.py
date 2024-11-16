@@ -1,7 +1,6 @@
 import os
 import json
 from typing import List, Dict
-import shutil
 from dotenv import load_dotenv
 import base64
 from openai import OpenAI

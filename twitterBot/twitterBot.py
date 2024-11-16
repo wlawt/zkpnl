@@ -10,6 +10,7 @@ import tweepy
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
+
 load_dotenv()
 
 def create_twitter_client():
@@ -198,6 +199,8 @@ def get_data_from_ai(folder_path: str = "pnl") -> List[Dict]:
         print(f"Error processing images: {str(e)}")
         return []
     
+
+
 
 
 get_img_from_tweet("1857741559158219055") 
