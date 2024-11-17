@@ -4,3 +4,6 @@
 .DS_Store
 /*/*.DS_Store
 /contracts/out
+
+.pytest_cache
+__pycache__
